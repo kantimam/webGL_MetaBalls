@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script type="x-shader/x-vertex" id="vertShader">
+        precision mediump float;
+        attribute vec4 a_position;
+
+        void main() {
+            gl_Position = a_position;
+        }
+    </script>
+    <script type="x-shader/x-fragment" id="fragShader">
+        precision mediump float;
+        uniform float u_time;
+        uniform vec2 u_resolution;
+
+        float N21(vec2 p){
+            return fract(sin(p.x*100.0+p.y*7798.0)*5879.0 );
+        }
+
+        void main() {
+            vec2 uv=gl_FragCoord.xy/u_resolution;
+            float c=N21(uv);
+
+            vec2 lv=fract(uv*(10.0+sin(u_time)));
+
+            vec3 col=vec3(c);
+            
+            col.rg=lv;
+
+            //gl_FragColor = vec4(col,1.0);
+
+            float sin0to1=0.5*sin(u_time)+0.5;
+
+            //gl_FragColor = vec4(vec3(sin(u_time*uv.x),sin(u_time*uv.y),1.0),1.0);
+
+            gl_FragColor = vec4(vec3(vec2(sin0to1*uv.xy),1.0),1.0);
+        }
+    </script>
+</head>
+<body>
+    <canvas width="800" height="800" id="glCanvas">
+
+    </canvas>
+    <script src="main.js"></script>
+</body>
+</html>
