@@ -14,10 +14,11 @@ window.onload = function () {
     /* fix placeholder inside fragShader */
 
     /* 2 vector3 fields needed to store all the needed orbdata */
-    fragShader=setDynamicLength(fragShader, orbArray.length*2)
+    fragShader=setDynamicLength(fragShader, orbArray.length)
 
 
     render(glContext, vertShader, fragShader, orbArray);
+
 
 }
 
@@ -39,8 +40,19 @@ const randomInRange=(start, end)=>{
 }
 
 const setDynamicLength=(shaderString, length)=>{
-    return shaderString.replace(/<DYNAMIC_LENGTH>/, length);
+    const dataLengthSet=shaderString.replace(/<DYNAMIC_LENGTH>/, length*6);
+    const arrSizeSet=dataLengthSet.replace(/<ORBCOUNT=0>/, `ORBCOUNT=${length}`);
+    return arrSizeSet;
 }
+
+const updateOrbs=(orbArray)=>{
+    for(let i=0; i<orbArray.length; i++){
+        orbArray[i].updatePosition();
+        if(orbArray[i].position.x>800 || orbArray[i].position.x<0) orbArray[i].move.x*=-1;
+        if(orbArray[i].position.y>800 || orbArray[i].position.y<0) orbArray[i].move.y*=-1;  
+    }
+}
+
 
 const u_orbDataFromArray=(orbArray)=>{
     const u_orbDataArray=[];
@@ -91,10 +103,7 @@ function render(gl, vertexShader, fragmentShader, orbArray) {
     // look up orb uniform array location
     const uOrbArrayLocation=gl.getUniformLocation(program, "u_orbData");
 
-    // look up orbcount uniform location
-    const uOrbCountLocation=gl.getUniformLocation(program, "u_orbCount");
-
-    gl.uniform1i(uOrbCountLocation, orbArray.length);
+    
 
     // set resolution
     gl.uniform2fv(uResolutionLocation, [800.0, 800.0]);
@@ -134,7 +143,8 @@ function render(gl, vertexShader, fragmentShader, orbArray) {
         gl.uniform1f(uTimeLocation, (Date.now()-startTime)/1000.0);
         
 
-        gl.uniform3iv(uOrbArrayLocation, 
+        updateOrbs(orbArray);
+        gl.uniform1fv(uOrbArrayLocation, 
             u_orbDataFromArray(orbArray)    
         )
         

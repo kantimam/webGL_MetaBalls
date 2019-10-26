@@ -5,7 +5,7 @@ export default class Orb{
         this.move=move;
         this.color=color;
     }
-    updatePos(){
+    updatePosition(){
         this.position.x+=this.move.x;
         this.position.y+=this.move.y;
     }

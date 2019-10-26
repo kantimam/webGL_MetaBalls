@@ -15,18 +15,37 @@
     </script>
     <script type="x-shader/x-fragment" id="fragShader">
         precision mediump float;
+        const int <ORBCOUNT=0>;
+
         uniform float u_time;
         uniform vec2 u_resolution;
 
-        uniform vec3 u_orbData[<DYNAMIC_LENGTH>];
-        uniform int u_orbCount;
+        uniform float u_orbData[<DYNAMIC_LENGTH>];
         
+
+        float mult=100.0;
+        
+        vec3 getColSum(vec2 uv){
+            vec3 sumColor=vec3(0.0);
+
+            for(int i=0; i<ORBCOUNT; i++){
+                vec2 normBallPos=vec2(vec2(u_orbData[6*i+1], u_orbData[6*i+2]) / u_resolution);
+                float ballDistance=distance(normBallPos, uv);
+                float multDist=ballDistance*mult;
+
+                float distRadius=u_orbData[6*i] / multDist;
+
+                sumColor+=vec3(distRadius*(vec3(u_orbData[6*i+3], u_orbData[6*i+4], u_orbData[6*i+5])/255.0));
+            }
+            
+            return sumColor / float(ORBCOUNT);
+
+        }
 
         void main() {
             vec2 uv=gl_FragCoord.xy/u_resolution;
-            float sin0to1=0.5*sin(u_time)+0.5;
 
-            gl_FragColor = vec4(vec3(vec2(sin0to1*uv.xy),1.0),1.0);
+            gl_FragColor = vec4(getColSum(uv),1.0);
         }
     </script>
 </head>
