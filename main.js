@@ -6,10 +6,12 @@ window.onload = function () {
     const glCanvas = this.document.getElementById("glCanvas");
     const glContext = glCanvas.getContext("webgl");
 
+    setCanvasSize(glCanvas);
+
     let fragShader = this.document.getElementById("fragShader").innerHTML;
     const vertShader = this.document.getElementById("vertShader").innerHTML;
 
-    const orbArray=randomOrbArray(4, 800, 800);
+    const orbArray=randomOrbArray(4, glCanvas.width, glCanvas.height);
 
     /* fix placeholder inside fragShader */
 
@@ -22,15 +24,29 @@ window.onload = function () {
 
 }
 
+const recoverLostOrbs=(orbArray, canvasWidth, canvasHeight)=>{
+    for(let i=0; i<orbArray.length; i++){
+        if(orbArray[i].position.x>=canvasWidth) orbArray[i].position.x=randomInRange(0,canvasWidth)
+        if(orbArray[i].position.y>=canvasHeight) orbArray[i].position.x=randomInRange(0,canvasHeight)
+    }
+    
+}
+
+
+const setCanvasSize=(canvas)=>{
+    canvas.width=canvas.clientWidth;
+    canvas.height=canvas.clientHeight;
+}
+
 const randomOrbArray=(count, width, height)=>{
     const orbArray=[]
     for(let i=0;i<count;i++){
-        orbArray.push(new Orb(
-            randomInRange(0,50),
-            {x: randomInRange(0,width),y: randomInRange(0,height)},
-            {r: randomInRange(0,255),g: randomInRange(0,255), b: randomInRange(0,255)},
-            {x: randomInRange(1,5), y: randomInRange(1,5)}
-        ))
+        orbArray.push(new Orb({
+            size: randomInRange(40,150),
+            position: {x: randomInRange(0,width),y: randomInRange(0,height)},
+            color: {r: randomInRange(0,255),g: randomInRange(0,255), b: randomInRange(0,255)},
+            move: {x: randomInRange(1,5), y: randomInRange(1,5)}
+        }))
     }
     return orbArray;
 }
@@ -45,11 +61,11 @@ const setDynamicLength=(shaderString, length)=>{
     return arrSizeSet;
 }
 
-const updateOrbs=(orbArray)=>{
+const updateOrbs=(orbArray, boundsX, boundsY)=>{
     for(let i=0; i<orbArray.length; i++){
         orbArray[i].updatePosition();
-        if(orbArray[i].position.x>800 || orbArray[i].position.x<0) orbArray[i].move.x*=-1;
-        if(orbArray[i].position.y>800 || orbArray[i].position.y<0) orbArray[i].move.y*=-1;  
+        if(orbArray[i].position.x>boundsX || orbArray[i].position.x<0) orbArray[i].move.x*=-1;
+        if(orbArray[i].position.y>boundsY || orbArray[i].position.y<0) orbArray[i].move.y*=-1;  
     }
 }
 
@@ -103,10 +119,11 @@ function render(gl, vertexShader, fragmentShader, orbArray) {
     // look up orb uniform array location
     const uOrbArrayLocation=gl.getUniformLocation(program, "u_orbData");
 
-    
+    const uDistModifierLocation=gl.getUniformLocation(program, "u_distanceModifier");
 
+    gl.uniform1f(uDistModifierLocation, 5.0);
     // set resolution
-    gl.uniform2fv(uResolutionLocation, [800.0, 800.0]);
+    gl.uniform2fv(uResolutionLocation, [gl.canvas.width, gl.canvas.height]);
     gl.uniform1f(uTimeLocation, Date.now()/1000);
     
 
@@ -126,13 +143,23 @@ function render(gl, vertexShader, fragmentShader, orbArray) {
     let offset = 0; // start at the beginning of the buffer
     gl.vertexAttribPointer(positionLocation, size, type, normalize, stride, offset);
 
+
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     // Clear the canvas
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
 
-    
+    window.onresize=function(){
+        setCanvasSize(gl.canvas);
+
+        
+        recoverLostOrbs(orbArray, gl.canvas.width, gl.canvas.height);
+
+        gl.uniform2fv(uResolutionLocation, [gl.canvas.clientWidth, gl.canvas.clientHeight]);
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    }
+
 
 
     let lastTime, startTime=Date.now();
@@ -143,7 +170,7 @@ function render(gl, vertexShader, fragmentShader, orbArray) {
         gl.uniform1f(uTimeLocation, (Date.now()-startTime)/1000.0);
         
 
-        updateOrbs(orbArray);
+        updateOrbs(orbArray, gl.canvas.width, gl.canvas.height);
         gl.uniform1fv(uOrbArrayLocation, 
             u_orbDataFromArray(orbArray)    
         )

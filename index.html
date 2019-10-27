@@ -22,16 +22,17 @@
 
         uniform float u_orbData[<DYNAMIC_LENGTH>];
         
+        float aspectRatio=u_resolution.x / u_resolution.y;
 
-        float mult=100.0;
+        uniform float u_distanceModifier;
         
         vec3 getColSum(vec2 uv){
             vec3 sumColor=vec3(0.0);
 
             for(int i=0; i<ORBCOUNT; i++){
-                vec2 normBallPos=vec2(vec2(u_orbData[6*i+1], u_orbData[6*i+2]) / u_resolution);
+                vec2 normBallPos=vec2(u_orbData[6*i+1], u_orbData[6*i+2]);
                 float ballDistance=distance(normBallPos, uv);
-                float multDist=ballDistance*mult;
+                float multDist=ballDistance / u_distanceModifier;
 
                 float distRadius=u_orbData[6*i] / multDist;
 
@@ -43,14 +44,22 @@
         }
 
         void main() {
-            vec2 uv=gl_FragCoord.xy/u_resolution;
-
-            gl_FragColor = vec4(getColSum(uv),1.0);
+            gl_FragColor = vec4(getColSum(gl_FragCoord.xy),1.0);
         }
     </script>
+    <style>
+        html, body{
+            height: 100%;
+            margin: 0;
+        }
+        #glCanvas{
+            width: 100%;
+            height: 100%;
+        }
+    </style>
 </head>
 <body>
-    <canvas width="800" height="800" id="glCanvas">
+    <canvas id="glCanvas">
 
     </canvas>
     <script type="module" src="main.js"></script>
