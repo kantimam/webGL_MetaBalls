@@ -36,10 +36,10 @@
 
                 float distRadius=u_orbData[6*i] / multDist;
 
-                sumColor+=vec3(distRadius*(vec3(u_orbData[6*i+3], u_orbData[6*i+4], u_orbData[6*i+5])/255.0));
+                sumColor+=vec3(distRadius*vec3(u_orbData[6*i+3], u_orbData[6*i+4], u_orbData[6*i+5]));
             }
             
-            return sumColor / float(ORBCOUNT);
+            return (sumColor / float(ORBCOUNT));
 
         }
 

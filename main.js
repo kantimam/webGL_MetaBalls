@@ -13,8 +13,10 @@ window.onload = function () {
 
     const orbArray=randomOrbArray(4, glCanvas.width, glCanvas.height);
 
-    /* fix placeholder inside fragShader */
+    // expose orbarray to the window 
+    window.orbArray=orbArray;
 
+    /* fix placeholder inside fragShader */
     /* 2 vector3 fields needed to store all the needed orbdata */
     fragShader=setDynamicLength(fragShader, orbArray.length)
 
@@ -76,9 +78,9 @@ const u_orbDataFromArray=(orbArray)=>{
         u_orbDataArray.push(orbArray[i].size);
         u_orbDataArray.push(orbArray[i].position.x);
         u_orbDataArray.push(orbArray[i].position.y);
-        u_orbDataArray.push(orbArray[i].color.r);
-        u_orbDataArray.push(orbArray[i].color.g);
-        u_orbDataArray.push(orbArray[i].color.b);
+        u_orbDataArray.push(orbArray[i].color.r/255); // scale colors to 0-1.0 for the shader to reduce math in loops there
+        u_orbDataArray.push(orbArray[i].color.g/255);
+        u_orbDataArray.push(orbArray[i].color.b/255);
     }
     return u_orbDataArray;
 }
